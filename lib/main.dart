@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
@@ -28,7 +28,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  File? _preview;
+  Uint8List? _preview;
 
   @override
   void initState() {
@@ -37,10 +37,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _refreshPreview() async {
-    final file = await DesignStorage.preview();
-    // Drop the cached image so a new save shows up.
-    if (file != null) await FileImage(file).evict();
-    if (mounted) setState(() => _preview = file);
+    // Read the bytes each time: the file keeps its path, so a cached image would go stale.
+    final bytes = await (await DesignStorage.preview())?.readAsBytes();
+    if (mounted) setState(() => _preview = bytes);
   }
 
   Future<void> _openEditor() async {
@@ -60,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Expanded(
               child: _preview == null
                   ? const Center(child: Text('Open the editor and tap Save to see a preview here.'))
-                  : Image.file(_preview!, fit: BoxFit.contain),
+                  : Image.memory(_preview!, fit: BoxFit.contain, gaplessPlayback: true),
             ),
             const SizedBox(height: 24),
             FilledButton(onPressed: _openEditor, child: const Text('Open Editor')),

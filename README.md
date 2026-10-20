@@ -13,7 +13,7 @@ Flutter app that embeds the Polotno editor (React + Vite) in a `webview_flutter`
 | Path                       | Role                                                            |
 | -------------------------- | --------------------------------------------------------------- |
 | `lib/main.dart`            | Home screen with the last saved preview and **Open Editor**      |
-| `lib/editor_screen.dart`   | App bar (PNG, PDF, Save), the WebView, the `PolotnoFlutter` channel |
+| `lib/editor_screen.dart`   | App bar (PNG, PDF, Save), the WebView, the `PolotnoFlutter` channel, the Android file picker |
 | `lib/storage.dart`         | Latest design and preview in app storage, export files          |
 | `assets/sample_design.json`| Design the editor opens before the first save                   |
 | `web-editor/`              | Vite React app that hosts the Polotno editor                     |
@@ -47,8 +47,8 @@ Tap **Open Editor**. **Save** posts `{ docJson, previewBase64 }` to Dart; the ho
 - **Handshake.** The editor posts `{ type: "ready" }` once `window.polotnoNative` exists. Dart answers with `load(<design JSON>)`.
 - **Exports.** The editor's toolbar download button is hidden in the app, because a browser download does nothing in a WebView. Exports cross the channel as base64; the app writes them to the temp directory and opens them with `share_plus`.
 
-## Image uploads on Android
+## Image uploads
 
-Polotno's Upload panel uses `<input type="file">`. iOS opens the system picker on its own. On Android the input does nothing until you set a file selector with `AndroidWebViewController.setOnShowFileSelector()` from `webview_flutter_android` and return the picked file URIs. This demo does not include it.
+Polotno's Upload panel uses `<input type="file">`. iOS opens the system picker on its own. On Android the WebView ignores the input until the app supplies the files: `lib/editor_screen.dart` registers `AndroidWebViewController.setOnShowFileSelector()` and picks images with `image_picker`.
 
 Docs: https://polotno.com/docs/flutter

@@ -2,8 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 
 import 'storage.dart';
 
@@ -28,7 +30,22 @@ class _EditorScreenState extends State<EditorScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       // The channel name becomes `window.PolotnoFlutter` in the page.
       ..addJavaScriptChannel('PolotnoFlutter', onMessageReceived: _onMessage);
+    // iOS opens the system picker for Polotno's Upload button on its own.
+    // Android's WebView ignores <input type="file"> until the app supplies the files.
+    final platform = _controller.platform;
+    if (platform is AndroidWebViewController) {
+      platform.setOnShowFileSelector(_pickFiles);
+    }
     _loadEditor();
+  }
+
+  /// Returns the picked images as file URIs, or an empty list when the user cancels.
+  Future<List<String>> _pickFiles(FileSelectorParams params) async {
+    final picker = ImagePicker();
+    final files = params.mode == FileSelectorMode.openMultiple
+        ? await picker.pickMultiImage()
+        : [?await picker.pickImage(source: ImageSource.gallery)];
+    return files.map((file) => Uri.file(file.path).toString()).toList();
   }
 
   Future<void> _loadEditor() async {
